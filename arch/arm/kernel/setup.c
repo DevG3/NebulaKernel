@@ -369,19 +369,50 @@ void __init early_print(const char *str, ...)
 	printk("%s", buf);
 }
 
-static void __init feat_v6_fixup(void)
+static void __init cpuid_init_hwcaps(void)
 {
-	int id = read_cpuid_id();
+	unsigned int divide_instrs;
 
-	if ((id & 0xff0f0000) != 0x41070000)
+	if (cpu_architecture() < CPU_ARCH_ARMv7)
 		return;
+
+	divide_instrs = (read_cpuid_ext(CPUID_EXT_ISAR0) & 0x0f000000) >> 24;
+
+	switch (divide_instrs) {
+	case 2:
+		elf_hwcap |= HWCAP_IDIVA;
+	case 1:
+		elf_hwcap |= HWCAP_IDIVT;
+	}
+}
+
+static void __init elf_hwcap_fixup(void)
+{
+	unsigned id = read_cpuid_id();
+	unsigned sync_prim;
 
 	/*
 	 * HWCAP_TLS is available only on 1136 r1p0 and later,
 	 * see also kuser_get_tls_init.
 	 */
-	if ((((id >> 4) & 0xfff) == 0xb36) && (((id >> 20) & 3) == 0))
+	if ((((id >> 4) & 0xfff) == 0xb36) && (((id >> 20) & 3) == 0)) {
 		elf_hwcap &= ~HWCAP_TLS;
+		return;
+	}
+
+	/* Verify if CPUID scheme is implemented */
+	if ((id & 0x000f0000) != 0x000f0000)
+		return;
+
+	/*
+	 * If the CPU supports LDREX/STREX and LDREXB/STREXB,
+	 * avoid advertising SWP; it may not be atomic with
+	 * multiprocessing cores.
+	 */
+	sync_prim = ((read_cpuid_ext(CPUID_EXT_ISAR3) >> 8) & 0xf0) |
+		    ((read_cpuid_ext(CPUID_EXT_ISAR4) >> 20) & 0x0f);
+	if (sync_prim >= 0x13)
+		elf_hwcap &= ~HWCAP_SWP;
 }
 
 /*
@@ -496,7 +527,7 @@ static void __init setup_processor(void)
 	elf_hwcap &= ~HWCAP_THUMB;
 #endif
 
-	feat_v6_fixup();
+	elf_hwcap_fixup();
 
 	cacheid_init();
 	cpu_init();
