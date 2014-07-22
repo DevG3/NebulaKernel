@@ -2802,8 +2802,9 @@ static int mmc_blk_issue_rq(struct mmc_queue *mq, struct request *req)
 		/* claim host only for the first request */
 		mmc_claim_host(card->host);
 #ifdef CONFIG_MMC_BLOCK_DEFERRED_RESUME
-		if (mmc_bus_needs_resume(card->host))
-			mmc_resume_bus(card->host);
+	if (mmc_bus_needs_resume(card->host)) {
+		mmc_resume_bus(card->host);
+	}
 #endif
 		if (card->ext_csd.bkops_en)
 			mmc_stop_bkops(card);
