@@ -26,7 +26,10 @@
 #include <linux/slab.h>
 #include <linux/time.h>
 #include "logger.h"
-
+#ifdef CONFIG_STATE_NOTIFIER
+#include <linux/state_notifier.h>
+static struct notifier_block logger_state_notif;
+#endif
 #include <asm/ioctls.h>
 
 #ifndef CONFIG_LOGCAT_SIZE
@@ -442,6 +445,26 @@ static ssize_t do_write_log_from_user(struct logger_log *log,
 	return count;
 }
 
+#ifdef CONFIG_STATE_NOTIFIER
+static int state_notifier_callback(struct notifier_block *this,
+				unsigned long event, void *data)
+{
+	switch (event) {
+		case STATE_NOTIFIER_ACTIVE:
+			log_enabled = 1;
+			break;
+		case STATE_NOTIFIER_SUSPEND:
+			if (log_mode == 1)
+				log_enabled = 0;
+			break;
+		default:
+			break;
+	}
+
+	return NOTIFY_OK;
+}
+#endif
+
 /*
  * logger_aio_write - our write method, implementing support for write(),
  * writev(), and aio_write(). Writes are our fast path, and we try to optimize
@@ -771,7 +794,14 @@ static int __init logger_init(void)
 {
 	int ret;
 
-	ret = init_log(&log_main);
+#ifdef CONFIG_STATE_NOTIFIER
+	logger_state_notif.notifier_call = state_notifier_callback;
+	if (state_register_client(&logger_state_notif))
+		pr_err("%s: Failed to register State notifier callback\n",
+			__func__);
+#endif
+
+	ret = create_log(LOGGER_LOG_MAIN, CONFIG_LOGCAT_SIZE*1024);
 	if (unlikely(ret))
 		goto out;
 
@@ -790,4 +820,25 @@ static int __init logger_init(void)
 out:
 	return ret;
 }
+
+static void __exit logger_exit(void)
+{
+	struct logger_log *current_log, *next_log;
+
+#ifdef CONFIG_STATE_NOTIFIER
+	state_unregister_client(&logger_state_notif);
+	logger_state_notif.notifier_call = NULL;
+#endif
+
+	list_for_each_entry_safe(current_log, next_log, &log_list, logs) {
+		/* we have to delete all the entry inside log_list */
+		misc_deregister(&current_log->misc);
+		vfree(current_log->buffer);
+		kfree(current_log->misc.name);
+		list_del(&current_log->logs);
+		kfree(current_log);
+	}
+}
+
+
 device_initcall(logger_init);
