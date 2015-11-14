@@ -926,12 +926,12 @@ static int mdss_dsi_event_handler(struct mdss_panel_data *pdata,
 		ctrl_pdata->ctrl_state |= CTRL_STATE_MDP_ACTIVE;
 		if (ctrl_pdata->on_cmds.link_state == DSI_HS_MODE)
 			rc = mdss_dsi_unblank(pdata);
-#ifdef CONFIG_STATE_NOTIFIER
 #ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
 		scr_suspended = false;
 #endif
-		if (!use_fb_notifier)
-			state_resume();
+
+#ifdef CONFIG_STATE_NOTIFIER
+		state_resume();
 #endif
 		break;
 	case MDSS_EVENT_BLANK:
@@ -949,12 +949,13 @@ static int mdss_dsi_event_handler(struct mdss_panel_data *pdata,
             touch_notifier_call_chain(LCD_EVENT_TOUCH_LPWG_ON, NULL);
         }
 #endif
-#ifdef CONFIG_STATE_NOTIFIER
+
 #ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
 		scr_suspended = true;
 #endif
-		if (!use_fb_notifier)
-			state_suspend();
+
+#ifdef CONFIG_STATE_NOTIFIER
+		state_suspend();
 #endif
 		break;
 	case MDSS_EVENT_CONT_SPLASH_FINISH:

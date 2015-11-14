@@ -11,11 +11,6 @@ struct state_event {
 };
 
 extern bool state_suspended;
-extern bool use_fb_notifier;
-<<<<<<< HEAD
-extern bool scr_suspended;
-=======
->>>>>>> 8377635... msm: Add state notifier driver
 extern void state_suspend(void);
 extern void state_resume(void);
 int state_register_client(struct notifier_block *nb);
