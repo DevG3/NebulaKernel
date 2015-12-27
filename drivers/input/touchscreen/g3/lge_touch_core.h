@@ -19,8 +19,6 @@
 #define LGE_TOUCH_CORE_H
 #include <linux/wakelock.h>
 
-//                            
-
 #define MAX_FINGER	10
 #define MAX_BUTTON	4
 #define FW_VER_INFO_NUM 4
@@ -28,7 +26,6 @@
 #define I2C_MAX_TRY 10
 #define MAX_RETRY_COUNT 3
 #define TRX_MAX 32
-
 
 struct bouncing_filter_role {
 	u32	enable;
@@ -99,7 +96,7 @@ struct ghost_detection_role {
 
 struct crack_detection_role {
 	u32 use_crack_mode; // Yes = 1, No = 0
-	u32 min_cap_value; 	
+	u32 min_cap_value;
 };
 
 struct touch_device_caps {
@@ -158,6 +155,7 @@ struct touch_platform_data {
 	struct touch_operation_role	*role;
 	struct touch_power_module	*pwr;
 	struct touch_firmware_module	*fw;
+	struct mutex			thread_lock;
 	const char* inbuilt_fw_name;
 	const char* inbuilt_fw_name_s3621;
 	const char* inbuilt_fw_name_s3528_a1;
@@ -342,7 +340,7 @@ enum window_status {
 
 struct touch_device_driver {
 	enum error_type (*probe) (struct i2c_client *client,
-		const struct touch_platform_data *lge_ts_data,
+		struct touch_platform_data *lge_ts_data,
 		const struct state_info *state,
 		struct attribute ***attribute_list);
 	enum error_type (*remove) (struct i2c_client *client);
@@ -385,7 +383,6 @@ struct lge_touch_data {
 	struct delayed_work		work_trigger_handle;
 	struct delayed_work		work_crack;
 	struct delayed_work		work_thermal;
-	struct mutex			thread_lock;
 	struct bouncing_filter_info	bouncing_filter;
 	struct grip_filter_info		grip_filter;
 	struct accuracy_filter_info	accuracy_filter;
@@ -394,9 +391,7 @@ struct lge_touch_data {
 	struct filter_func		filter_head;
 	struct filter_data		f_data;
 	struct wake_lock		lpwg_wake_lock;
-#if defined(CONFIG_HAS_EARLYSUSPEND)
-	struct early_suspend		early_suspend;
-#elif defined(CONFIG_FB)
+#ifdef CONFIG_FB
 	struct notifier_block		fb_notif;
 #endif
 };
@@ -575,25 +570,6 @@ enum{
 	DEBUG_LPWG_COORDINATES		= (1U << 16),	//65536
 };
 
-#ifdef LGE_TOUCH_TIME_DEBUG
-enum{
-	TIME_INTERRUPT = 0,
-	TIME_WORKQUEUE_START,
-	TIME_WORKQUEUE_END,
-	TIME_FW_UPGRADE_START,
-	TIME_FW_UPGRADE_END,
-	TIME_PROFILE_MAX,
-};
-
-enum{
-	DEBUG_TIME_PROFILE_NONE			= 0,
-	DEBUG_TIME_INTERRUPT			= (1U << 0),	// 1
-	DEBUG_TIME_WORKQUEUE			= (1U << 1),	// 2
-	DEBUG_TIME_FW_UPGRADE			= (1U << 2),	// 4
-	DEBUG_TIME_PROFILE_ALL			= (1U << 3),	// 8
-};
-#endif
-
 enum{
 	KEYGUARD_RESERVED = 0,
 	KEYGUARD_ENABLE,
@@ -711,18 +687,10 @@ do {								\
 		printk(KERN_INFO "[Touch] " fmt, ##args);	\
 } while(0)
 
-#ifdef LGE_TOUCH_TIME_DEBUG
-extern u32 touch_time_debug_mask;
-#define TOUCH_TIME_DEBUG(condition, fmt, args...)		\
-do {								\
-	if(unlikely(touch_time_debug_mask & (condition))) 	\
-		printk(KERN_INFO "[Touch] " fmt, ##args);	\
-} while(0)
-#endif
-
 #define TOUCH_TRACE()						\
 	TOUCH_DEBUG(DEBUG_TRACE, " - %s %d\n", __func__, __LINE__)
 
+extern int factory_boot;
 
 /* sysfs
  *

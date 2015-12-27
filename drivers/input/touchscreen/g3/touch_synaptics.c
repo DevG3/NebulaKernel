@@ -298,13 +298,20 @@ void write_time_log(char *filename, char *data, int data_include)
 
 	set_fs(KERNEL_DS);
 
-	if (filename == NULL)
-		fname = "/mnt/sdcard/touch_self_test.txt";
-	else
-		fname = filename;
-	fd = sys_open(fname, O_WRONLY|O_CREAT|O_APPEND, 0666);
+	if (filename == NULL) {
+		if (factory_boot)
+			fname = "/data/logger/touch_self_test.txt";
+		else
+			fname = "/sdcard/touch_self_test.txt";
 
-    TOUCH_INFO_MSG("write open %s, fd : %d \n", (fd >= 0) ? "success" : "fail", fd);
+	} else {
+		fname = filename;
+	}
+
+	fd = sys_open(fname, O_WRONLY|O_CREAT|O_APPEND, 0666);
+	sys_chmod(fname, 0666);
+
+	TOUCH_INFO_MSG("write open %s, fd : %d \n", (fd >= 0) ? "success" : "fail", fd);
 
 	if (fd >= 0) {
 		if (data_include && data != NULL)
@@ -317,44 +324,41 @@ void write_time_log(char *filename, char *data, int data_include)
 
 void write_firmware_version_log(struct synaptics_ts_data *ts)
 {
-    char *version_string = NULL;
-    int ver_outbuf = 0;
+	char *version_string = NULL;
+	int ver_outbuf = 0;
 
-    version_string = kzalloc(448 * sizeof(char), GFP_KERNEL);
+	version_string = kzalloc(448 * sizeof(char), GFP_KERNEL);
 
-    TOUCH_INFO_MSG("%s: first: version_string %p(%d)\n", __FUNCTION__, version_string, strlen(version_string));
+	TOUCH_INFO_MSG("%s: first: version_string %p(%d)\n", __FUNCTION__, version_string, strlen(version_string));
 
 	ver_outbuf += sprintf(version_string+ver_outbuf, "===== Firmware Info =====\n");
 
-    if (ts->fw_info.fw_version[0] > 0x40)
+	if (ts->fw_info.fw_version[0] > 0x40)
 		ver_outbuf += sprintf(version_string+ver_outbuf, "ic_fw_version[%s]\n", ts->fw_info.fw_version);
-	else {
+	else
 		ver_outbuf += sprintf(version_string+ver_outbuf, "version : v%d.%02d\n", ((ts->fw_info.fw_version[3] & 0x80) >> 7), (ts->fw_info.fw_version[3] & 0x7F));
-	}
 
 	ver_outbuf += sprintf(version_string+ver_outbuf, "IC_product_id[%s]\n", ts->fw_info.fw_product_id);
 
-    if (!(strncmp(ts->fw_info.fw_product_id, "PLG313", 6)) || !(strncmp(ts->fw_info.fw_product_id, "PLG352", 6)) || !(strncmp(ts->fw_info.fw_product_id, "PLG391", 6))) {
-		if (ts->fw_info.family && ts->fw_info.fw_revision) {
+	if (!(strncmp(ts->fw_info.fw_product_id, "PLG313", 6)) || !(strncmp(ts->fw_info.fw_product_id, "PLG352", 6)) || !(strncmp(ts->fw_info.fw_product_id, "PLG391", 6))) {
+		if (ts->fw_info.family && ts->fw_info.fw_revision)
 			ver_outbuf += sprintf(version_string+ver_outbuf, "Touch IC : s3528(family_id = %d, fw_rev = %d)\n",
 					ts->fw_info.family, ts->fw_info.fw_revision);
-		} else {
+		else
 			ver_outbuf += sprintf(version_string+ver_outbuf, "Touch IC : s3528(family_id = %d, fw_rev = %d)\n",
 					ts->fw_info.family, ts->fw_info.fw_revision);
-		}
-    } else if (!(strncmp(ts->fw_info.fw_product_id, "PLG298", 6))) {
+	} else if (!(strncmp(ts->fw_info.fw_product_id, "PLG298", 6)))
 		ver_outbuf += sprintf(version_string+ver_outbuf, "Touch IC : s3621\n");
-	} else {
+	else
 		ver_outbuf += sprintf(version_string+ver_outbuf, "Touch product id read error\n\n");
-	}
 
-    ver_outbuf += sprintf(version_string+ver_outbuf, "=========================\n\n");
+	ver_outbuf += sprintf(version_string+ver_outbuf, "=========================\n\n");
 
-    write_log(NULL, version_string);
-    msleep(30);
+	write_log(NULL, version_string);
+	msleep(30);
 
-    TOUCH_INFO_MSG("%s: after: version_string %p(%d)\n", __FUNCTION__, version_string, strlen(version_string));
-    kfree(version_string);
+	TOUCH_INFO_MSG("%s: after: version_string %p(%d)\n", __FUNCTION__, version_string, strlen(version_string));
+	kfree(version_string);
 }
 
 
@@ -408,7 +412,6 @@ static int tci_control(struct synaptics_ts_data *ts, int type, u8 value)
 {
 	struct i2c_client *client = ts->client;
 	u8 buffer[3] = {0};
-
 
 	switch (type) {
 	case REPORT_MODE_CTRL:
@@ -819,23 +822,6 @@ int synaptics_get_reference_chk(struct synaptics_ts_data *ts)
 	        }
 
 	        TOUCH_INFO_MSG("END check_diff_node\n");
-
-#ifdef REFERENCE_CHECK_LOG
-
-	        int k = 0;
-
-	        for (k = 0; k < TxChannelCount * RxChannelCount; k++) {
-	                TOUCH_INFO_MSG("%5d", ImagepTest[k]);
-	                if (k%RxChannelCount == RxChannelCount - 1)
-	                        TOUCH_INFO_MSG("\n");
-	        }
-	        for (k = 0; k < TRX_MAX; k++)
-	                TOUCH_INFO_MSG("pdata->rx_cap[%d] = %3d\n", k, ts->pdata->rx_cap[k]);
-	        TOUCH_INFO_MSG("\n\n");
-	        for (k = 0; k < TRX_MAX; k++)
-	                TOUCH_INFO_MSG("pdata->tx_cap[%d] = %3d\n", k, ts->pdata->tx_cap[k]);
-
-#endif
 
 	   for (i = 0; i < TxChannelCount * RxChannelCount; i++) {
 
@@ -1331,8 +1317,10 @@ static ssize_t show_firmware(struct i2c_client *client, char *buf)
 	int rc = 0;
 	mfts_mode = 0;
 
+	mutex_lock(&ts->pdata->thread_lock);
 	read_page_description_table(ts->client);
 	rc = get_ic_info(ts);
+	mutex_unlock(&ts->pdata->thread_lock);
 	if (rc < 0) {
 		ret += sprintf(buf+ret, "-1\n");
 		ret += sprintf(buf+ret, "Read Fail Touch IC Info.\n");
@@ -1396,8 +1384,10 @@ static ssize_t show_synaptics_fw_version(struct i2c_client *client, char *buf)
 	int ret = 0;
 	int rc = 0;
 
+	mutex_lock(&ts->pdata->thread_lock);
 	read_page_description_table(ts->client);
 	rc = get_ic_info(ts);
+	mutex_unlock(&ts->pdata->thread_lock);
 	if (rc < 0) {
 		ret += sprintf(buf+ret, "-1\n");
 		ret += sprintf(buf+ret, "Read Fail Touch IC Info.\n");
@@ -1459,6 +1449,7 @@ static ssize_t show_sd(struct i2c_client *client, char *buf)
 		msleep(10);
 		write_firmware_version_log(ts);
 
+		mutex_lock(&ts->pdata->thread_lock);
 		touch_disable_irq(ts->client->irq);
 
 		SCAN_PDT();
@@ -1551,7 +1542,7 @@ static ssize_t show_sd(struct i2c_client *client, char *buf)
 		msleep(30);
 		write_time_log(NULL, NULL, 0);
 		msleep(10);
-
+		mutex_unlock(&ts->pdata->thread_lock);
 
 		ret = sprintf(buf, "========RESULT=======\n");
 
@@ -2617,7 +2608,7 @@ error:
 	return -1;
 }
 
-enum error_type synaptics_ts_probe(struct i2c_client *client, const struct touch_platform_data* lge_ts_data,
+enum error_type synaptics_ts_probe(struct i2c_client *client, struct touch_platform_data* lge_ts_data,
 				const struct state_info *state, struct attribute ***attribute_list)
 {
 	struct synaptics_ts_data *ts;

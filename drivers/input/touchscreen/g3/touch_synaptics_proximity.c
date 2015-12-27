@@ -362,41 +362,6 @@ f12_found:
 
 static int prox_set_hover_finger_en(void)
 {
-/*
-	int retval;
-	unsigned char object_report_enable;
-	struct synaptics_ts_data *ts = prox->ts_data;
-
-	retval = prox_i2c_read(ts, prox->hover_finger_en_addr, &object_report_enable, sizeof(object_report_enable));
-
-	if (retval < 0) {
-		printk("[Touch Proximity] %s: Failed to read from object_report_enable register\n", __func__);
-		return retval;
-	}
-
-	printk("[Touch Proximity] %s: (Before writing) object_report_enable=0x%02X\n", __func__, object_report_enable);
-
-	if (prox->hover_finger_en)
-		object_report_enable |= HOVERING_FINGER_EN;
-	else
-		object_report_enable &= ~HOVERING_FINGER_EN;
-
-	retval = prox_i2c_write(ts, prox->hover_finger_en_addr, &object_report_enable, sizeof(object_report_enable));
-
-	if (retval < 0) {
-		printk("[Touch Proximity] %s: Failed to write to object_report_enable register\n", __func__);
-		return retval;
-	}
-
-	retval = prox_i2c_read(ts, prox->hover_finger_en_addr, &object_report_enable, sizeof(object_report_enable));
-
-	if (retval < 0) {
-		printk("[Touch Proximity] %s: Failed to read from object_report_enable register\n", __func__);
-		return retval;
-	}
-
-	printk("[Touch Proximity] %s: (After writing) object_report_enable=0x%02X\n", __func__, object_report_enable);
-*/
 	return 0;
 }
 

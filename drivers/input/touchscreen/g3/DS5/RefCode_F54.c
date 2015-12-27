@@ -15,29 +15,7 @@
 // FullRawCapacitance Support 0D button
 //
 #include "RefCode_F54.h"
-#if defined(CONFIG_MACH_MSM8974_VU3_KR)
-#include "TestLimits_vu3.h"
-#else
 #include "TestLimits.h"
-#endif
-#if 0
-#ifdef _DEBUG
-#define DEBUG_TOUCH_INFO_MSG(format, ...) TOUCH_INFO_MSG(format, __VA_ARGS__)
-#else
-#define DEBUG_TOUCH_INFO_MSG(format, ...)
-#endif
-
-#ifdef INTERACTIVE_SHELL
-#define EXIT(x) exit(x)
-#else
-void EXIT(int x)
-{
-	fTOUCH_INFO_MSG(stderr, "Press any key to exit.\n");
-	_getch();
-	exit(x);
-}
-#endif
-#endif
 
 //#define TRX_max 32
 #define TRX_mapping_max 54
@@ -47,21 +25,6 @@ void EXIT(int x)
 #define UPPER_ABS_RAW_CAP_LIMIT 14000 //fF
 #define REPORT_DATA_OFFEST 3
 #define VERSION "1.0"
-
-#if 0
-void fatal(const char *format, ...)
-{
-	va_list ap;
-
-	DEBUG_TOUCH_INFO_MSG("Error in %s on line %d\n", __FILE__, __LINE__);
-
-	va_start(ap, format);
-	vfTOUCH_INFO_MSG(stderr, format, ap);
-	va_end(ap);
-
-	EXIT(EXIT_FAILURE);
-}
-#endif
 
 unsigned int count;
 const unsigned short DefaultTarget = 0;
@@ -211,29 +174,6 @@ static int out_buf = 0;
 char f54_wlog_buf[6000] = {0};
 char wlog_buf[6000] = {0};
 
-
-#if 0
-// Read one or more sensor registers. The number of registers to read (starting
-// at address regAddr) is supplied in length, and the data is returned in values[].
-void Read8BitRegisters(unsigned short regAddr, unsigned char *data, int length)
-{
-	unsigned int lengthRead;
-
-	cdci.ReadRegister(DefaultTarget, (unsigned short) I2C_SLAVE_ADDRESS,
-			(unsigned short)regAddr, data, length, lengthRead, DefaultTimeout);
-}
-
-// Write to one or more sensor registers. The number of registers to write (starting
-// at address regAddr) is supplied in length, and the data is supplied in values[].
-void Write8BitRegisters(unsigned short regAddr, unsigned char *data, int length)
-{
-	unsigned int lengthWritten;
-
-	cdci.WriteRegister(DefaultTarget, (unsigned short) I2C_SLAVE_ADDRESS,
-			(unsigned short)regAddr, data, length, lengthWritten, DefaultTimeout);
-}
-#endif
-
 // Function to switch beteen register pages.
 bool switchPage(int page) {
 	unsigned char values[1] = {0};
@@ -255,148 +195,6 @@ bool switchPage(int page) {
 	return true;
 }
 
-#if 0
-void LoadTestLimits()
-{
-	xlsWorkBook* pWB;
-	xlsWorkSheet* pWS;
-	int SheetCount, r, c, i, j, temp;
-	struct st_row::st_row_data* row ;
-	int debug_externel_limits = 1;
-	int index, offset;
-
-	pWB=xls_open("..\\Function54RefCode\\TestLimits.xls","UTF-8");
-	if (pWB!=NULL){
-
-		for (i = 0 ; i<pWB->sheets.count ; i++) {
-
-			if (debug_externel_limits){
-				printf("Sheet N%i (%s) pos %i\n",	i,	pWB->sheets.sheet[i].name,
-						pWB->sheets.sheet[i].filepos);
-			}
-			for (j=0; j < pWB->sheets.count; j++) {
-				if (!strcmp(pWB->sheets.sheet[i].name, SheetName[j])) {
-					//printf("Start to parse limits%s(%d)\n",	SheetName[j], j);
-
-					pWS=xls_getWorkSheet(pWB,i);
-					xls_parseWorkSheet(pWS);
-
-					switch (j) {
-						case 0: //"FullRawCapacitance"
-							for (r = 0; r < TxChannelCount; r++) {
-								for (c = 0; c < RxChannelCount; c++) {
-									row = &pWS->rows.row[r+1];
-									if (debug_externel_limits) {
-										//printf("FullRawCapacitance L [%d][%d]%f\n",r,c, pWS->rows.row[r+1].cells.cell[2*c+1].d);
-										//printf("fullrawcapacitance l %f\n",	(&row->cells.cell[2*c+1])->d);
-										//printf("fullrawcapacitance h %f\n", (&row->cells.cell[2*c+2])->d);
-									}
-									LowerImageLimit[r][c] = (&row->cells.cell[2*c+1])->d;
-									UpperImageLimit[r][c] = (&row->cells.cell[2*c+2])->d;
-								}
-							}
-							break;
-
-						case 1: //AdcRange
-							for (r = 0; r < TxChannelCount; r++) {
-								for (c = 0; c < RxChannelCount; c++) {
-									row = &pWS->rows.row[r+1];
-									ADCLowerImageLimit[r][c] = (&row->cells.cell[2*c+1])->d;
-									ADCUpperImageLimit[r][c] = (&row->cells.cell[2*c+2])->d;
-								}
-							}
-							break;
-
-						case 2: //SensorSpeed
-							for (r = 0; r < TxChannelCount; r++) {
-								for (c = 0; c < RxChannelCount; c++) {
-									row = &pWS->rows.row[r+1];
-									SensorSpeedLowerImageLimit[r][c] = (&row->cells.cell[2*c+1])->d;
-									SensorSpeedUpperImageLimit[r][c] = (&row->cells.cell[2*c+2])->d;
-								}
-							}
-							break;
-						case 3: //TRxOpen
-							row = &pWS->rows.row[1];
-
-							for(r = 0; r < TRX_mapping_max ; r++){
-								temp = TRxPhysical[r];
-								if ((TRxPhysical[r] != 0xFF) && ((&row->cells.cell[temp + 1])->d > 0)){
-									index = temp / 8;
-									offset = 7- (temp % 8);
-									TRX_Open[index] = TRX_Open[index] + pow(2.0,offset);
-
-								}
-							}
-
-							break;
-						case 4: //TRxGround
-							row = &pWS->rows.row[1];
-							for(r = 0; r < TRX_mapping_max ; r++){
-								temp = TRxPhysical[r];
-								if ((TRxPhysical[r] != 0xFF) && ((&row->cells.cell[temp + 1])->d > 0)){
-									index = temp / 8;
-									offset = 7- (temp % 8);
-									TRX_Gnd[index] = TRX_Gnd[index] + pow(2.0,offset);
-									//printf("trx, %d, row , %3.0f \n",TRxPhysical[r] , (&row->cells.cell[temp + 1])->d );
-									//printf("TRX_G1[%d]\n", TRX_Gnd[2]);
-								}
-							}
-							break;
-						case 5: //TRxToTRxShort
-							row = &pWS->rows.row[1];
-							for(r = 0; r < TRX_mapping_max ; r++){
-								temp = TRxPhysical[r];
-								if ((TRxPhysical[r] != 0xFF) && ((&row->cells.cell[temp + 1])->d > 0)){
-									index = temp / 8;
-									offset = 7- (temp % 8);
-									TRX_Short[index] = TRX_Short[index] + pow(2.0,offset);
-
-								}
-							}
-							break;
-						case 6:	//"HighResistance"
-							r = 1;
-							for (c = 0; c < 3 ; c++) {
-								row=&pWS->rows.row[r];
-								HighResistanceLowerLimit[c] = (float)(&row->cells.cell[2*c+1])->d;
-								HighResistanceUpperLimit[c] = (float)(&row->cells.cell[2*c+2])->d;
-							}
-							break;
-						case 7: //MaxMinTest
-							break;
-						case 8://AbsADCRange
-							break;
-						case 9: //AbsDelta
-							break;
-						case 10: //AbsRaw
-							break;
-						default:
-							printf("[%d] Invalid value!\n", i);
-							break;
-					}
-				}
-			}
-		}
-	} else {
-		//Load TRX_Gnd test limit according to Physical TRx mapping.
-
-		for (int k = 0; k < TRX_mapping_max; k++){
-			temp = TRxPhysical[k];
-			if ( temp != 0xFF){
-				index = temp / 8;
-				offset = 7- (temp % 8);
-				TRX_Gnd[index] = TRX_Gnd[index] + pow(2.0,offset);
-				//printf (" TRxPhysical[%d],Index [%d], offset [%d], TRX_Gnd[%d], [%3.0f]\n", TRxPhysical[k],index,offset, TRX_Gnd[index], pow(2.0,offset) );
-			}
-		}
-		printf("Open file failed, use default Test Limit!\n");
-	}
-
-	return;
-}
-#endif
-
 void Reset(void)
 {
 	unsigned char data;
@@ -416,22 +214,6 @@ int CompareImageReport(void)
 	int i,j,node_crack_count=0,rx_crack_count=0, row_crack_count = 0;
 
 	//Compare 0D area
-#if defined(CONFIG_MACH_MSM8974_VU3_KR)
-	if (ButtonCount > 0){
-		for(i = 0; i < ButtonCount; i++){
-			for(j=0; j<(int)F12_2DTxCount;j++){
-				if( (LowerImageLimit[j][F12_2DRxCount+i]>0) && (UpperImageLimit[j][F12_2DRxCount+i]>0 )){
-					if ((ImagepF[j][F12_2DRxCount+i] < LowerImageLimit[j][F12_2DRxCount+i]) ||
-							(ImagepF[j][F12_2DRxCount+i] > UpperImageLimit[j][F12_2DRxCount+i])){
-						TOUCH_INFO_MSG("[Touch] ButtonCheck-FAIL Tx[%d] Rx[%d]\n",j,F12_2DRxCount+i);
-						result = false;
-						break;
-					}
-				}
-			}
-		}
-	}
-#else
 	if (ButtonCount > 0){
 		for(i = 0; i < ButtonCount; i++){
 			if ((ImagepF[TxChannelCount-1][F12_2DRxCount + i] < LowerImageLimit[TxChannelCount-1][F12_2DRxCount + i]) ||
@@ -443,7 +225,7 @@ int CompareImageReport(void)
 		}
 
 	}
-#endif
+
 	//Compare 2D area
 	for (j = 0; j < (int)F12_2DRxCount; j++){
 		extern int f54_window_crack;
@@ -1427,30 +1209,6 @@ int ReadReport(unsigned char input, char *buf)
 	return ret;
 }
 
-#if 0
-// Power up the sensor, configure the Control Bridge protocol converter to use the appropriate protocol.
-EError PowerOnSensor()
-{
-	EError nRet;
-	nRet = cdci.Connect();
-	nRet = cdci.PowerOn((unsigned short)0, SENSOR_VDD_SUPPLY_MV, SENSOR_SUPPLY_MV, SENSOR_SUPPLY_MV, DefaultTimeout);
-	if (nRet == 0){
-		nRet = cdci.ConfigI2CReg((unsigned short)0, ERmiAddressEightBit,EPullupsYes, ELowSpeed, EAttnLow, DefaultTimeout);
-	}
-	return nRet;
-}
-
-// Remove power from the sensor.
-EError PowerOffSensor()
-{
-	EError nRet;
-
-	nRet = cdci.PowerOff(DefaultTarget, DefaultTimeout);
-	cdci.Disconnect();
-	return nRet;
-}
-#endif
-
 // Examples of reading query registers. Real applications often do not need to read query registers at all.
 void RunQueries(void)
 {
@@ -1461,10 +1219,6 @@ void RunQueries(void)
 	int offset = 0;
 	int query_offset = 0;
 	int i,j = 0;
-#if defined(CONFIG_MACH_MSM8974_VU3_KR)
-	int k = 0;
-	int cnt = 0;
-#endif
 
 	// Scan Page Description Table (PDT) to find all RMI functions presented by this device.
 	// The Table starts at $00EE. This and every sixth register (decrementing) is a function number
@@ -1483,28 +1237,6 @@ void RunQueries(void)
 					Read8BitRegisters((cAddr-4), &F01CommandBase, 1);
 					break;
 				}
-#if defined(CONFIG_MACH_MSM8974_VU3_KR)
-			case 0x1a:
-				if(!bHaveF1A){
-					k =0;
-					Read8BitRegisters((cAddr-3), &F1AControlBase, 1);
-					Read8BitRegisters(F1AControlBase+1, &ButtonCount, 1);
-					//ButtonCount = log((double)ButtonCount+1 )/ log(2.0);
-					while(ButtonCount){
-						cnt++;
-						ButtonCount=(ButtonCount>>1);
-					}
-					ButtonCount=cnt;
-					for (i = 0; i < ButtonCount; i++){
-						Read8BitRegisters(F1AControlBase + 3 + k, &ButtonTx[i], 1);
-						Read8BitRegisters(F1AControlBase + 3 + k + 1 , &ButtonRx[i], 1);
-						k= k +2;
-					}
-					//TOUCH_INFO_MSG("Have 1A:%d,%d\n",ButtonTx[1], ButtonRx[1]);
-					bHaveF1A = true;
-				}
-				break;
-#endif
 			case 0x12:
 				if(!bHaveF12){
 					Read8BitRegisters((cAddr-3), &F12ControlBase, 1);
@@ -1785,9 +1517,6 @@ bool TestPreparation(void)
 	unsigned char data = 0;
 	unsigned char addr = 0;
 
-	//if (!switchPage(0x01))
-	//	return false;
-
 	// Turn off CBC.
 	if (bHaveF54Ctrl07) {
 		addr = F54ControlBase + F54Ctrl07Offset;
@@ -1879,9 +1608,6 @@ int diffnode(unsigned short *ImagepTest)
 	}
 
 	if (TestPreparation()){
-
-		//memcpy(LowerImageLimit, LowerImage, sizeof(LowerImageLimit));
-		//memcpy(UpperImageLimit, UpperImage, sizeof(UpperImageLimit));
 		data = 20;//rawdata mode
 		Write8BitRegisters(F54DataBase, &data, 1);
 		data = 0x01;
@@ -2067,8 +1793,6 @@ int AbsDelta(char *buf)
 int AbsRaw(int mode, char *buf)
 {
 	unsigned char data;
-
-	//switchPage(0x01);
 	if (bHaveCtrl98) {
 		Read8BitRegisters((F54ControlBase+F54Ctrl98Offset), &Data[0], 6);
 
@@ -2081,7 +1805,6 @@ int AbsRaw(int mode, char *buf)
 	Write8BitRegisters(F54DataBase, &data, 1);
 
 	do_gettimeofday(&t_interval[STARTTIME]);
-	//startTime = GetTickCount();
 
 	if (mode == 1)
 		data = 'n';//Abs Sensing Short Test mode
@@ -2097,9 +1820,6 @@ int AbsRaw(int mode, char *buf)
 void TRexOpenTest(char *buf)
 {
 	unsigned char data;
-
-	//fprintf(stderr, "Press any key to continue after you have lowered the bar.\n");
-	//_getch();
 
 	if (TestPreparation()){
 		// Assign report type for TRex Open Test
@@ -2187,20 +1907,20 @@ void CheckCrash(char *rst, int min_caps_value)
 	int row_crack_count = 0;
 	unsigned char cmd;
 
-	if (TestPreparation() == false){	
+	if (TestPreparation() == false){
 		TOUCH_INFO_MSG("TestPreparation failed\n");
 		goto error;
 	}
 
 	cmd = 20;
-	DO_SAFE(Write8BitRegisters(F54DataBase, &cmd, 1), error);	
+	DO_SAFE(Write8BitRegisters(F54DataBase, &cmd, 1), error);
 
 	cmd = 0x01;
 	DO_SAFE(Write8BitRegisters(F54CommandBase, &cmd, 1), error);
 
 	count = 0;
 	do {
-		DO_SAFE(Read8BitRegisters(F54CommandBase, &cmd, 1), error); 			
+		DO_SAFE(Read8BitRegisters(F54CommandBase, &cmd, 1), error);
 		msleep(1);
 		count++;
 	} while (cmd != 0x00 && (count < DefaultTimeout));
@@ -2210,7 +1930,7 @@ void CheckCrash(char *rst, int min_caps_value)
 	for (i = 0; i < (int)TxChannelCount; i++) {
 		for (j = 0; j < (int)RxChannelCount; j++) {
 			ImagepF[i][j] = ((short)Data[k] | (short)Data[k+1] << 8);
-			
+
 			if ((ImagepF[i][j] < LowerImageLimit[i][j]) || (ImagepF[i][j] > UpperImageLimit[i][j])) {
 				if (ImagepF[i][j] < min_caps_value) {
 					rx_crack_count++;
@@ -2228,20 +1948,16 @@ void CheckCrash(char *rst, int min_caps_value)
 					return;
 				}
 			}
-			
-			k += 2;			
+
+			k += 2;
 		}
-		
+
 		rx_crack_count = 0;
-	}	
+	}
 
 	sprintf(rst, "%d", 0);
 	TOUCH_INFO_MSG("Tx [%d] Rx [%d] node_crack_count %d, row_crack_count %d\n",
-						i, 
-						j,
-						node_crack_count,
-						row_crack_count);
-
+			i, j, node_crack_count, row_crack_count);
 	return;
 error:
 	sprintf(rst, "%d", 0);
@@ -2261,51 +1977,11 @@ void SCAN_PDT(void)
 
 // Main entry point for the application
 int F54Test(int input, int mode, char *buf)
-	//int _tmain(int argc, _TCHAR* argv[])
 {
 
 	int ret = 0;
 	unsigned char data;
-	//if (PowerOnSensor())
-	//{
-	//  fatal("Error powering on sensor.\n");
-	//}
 
-	// These four function calls are to scan the Page Description Table (PDT)
-	// Function $01, $11 and $34 are on page 0
-	// Function $54 is on page 1
-	// Function $55 is on Page ?
-	// Scan up to Page 4
-	//for (int i = 0; i < scanMaxPageCount ;i++)
-	//{
-	//  if (switchPage(i))
-	//   RunQueries();
-	//}
-
-	// Application should exit with the absence of Function $54
-//	if (!bHaveF54)
-//		return -1;
-	//exit(0);
-	//LoadTestLimits();
-	/*
-	   while (1){
-	   printf("\nPress these keys for tests:\n");
-	   printf(" a ) - Full Raw Capacitance Test\n");
-	   printf(" b ) - ADC Range Test\n");
-	   printf(" c ) - Sensor Speed Test\n");
-	   printf(" d ) - TRex Open Test\n");
-	   printf(" e ) - TRex Gnd Test\n");
-	   printf(" f ) - TRx-to-TRx and TRx-to-Vdd shorts\n");
-	   printf(" g ) - High Resistance Test\n");
-	   printf(" h ) - Full Raw Capacitance Max/Min Test\n");
-	   printf(" i ) - Abs Sensing ADC Range Test\n");
-	   printf(" j ) - Abs Sensing Delta Capacitance\n");
-	   printf(" k ) - Abs Sensing Raw Capcitance Test\n");
-	   printf("---------------------------------------------------------------");
-	   printf("\n z ) - Version\n");
-	   printf("\nPress any other key to exit.\n");
-	   input = _getch();
-	   */
 	if (!switchPage(0x01))
 		return false;
 
@@ -2354,6 +2030,7 @@ int F54Test(int input, int mode, char *buf)
 		case 'i':
 			outbuf = sprintf(f54_wlog_buf, "i - Abs Sensing ADC Range Test\n");
 			AbsADCRange(buf);
+
 			break;
 		case 'j':
 			outbuf = sprintf(f54_wlog_buf, "j - Abs Sensing Delta Capacitance\n");

@@ -25,16 +25,12 @@
 #include <linux/types.h>
 #include <linux/platform_device.h>
 #include <linux/input/synaptics_dsx.h>
-#include "synaptics_dsx_core.h"
-#ifdef CUST_LGE_TOUCH_BRING_UP
+#include "synaptics_dsx_i2c.h"
 #include <linux/gpio.h>
 #include <linux/of_gpio.h>
 #include <linux/regulator/machine.h>
-#endif
 
-#ifdef CUST_LGE_TOUCH_BRING_UP
 #define I2C_DRIVER_NAME "synaptics_dsx_i2c"
-#endif
 #define SYN_I2C_RETRY_TIMES 10
 
 static int synaptics_rmi4_i2c_set_page(struct synaptics_rmi4_data *rmi4_data,
@@ -193,7 +189,6 @@ static void synaptics_rmi4_i2c_dev_release(struct device *dev)
 	return;
 }
 
-#ifdef CUST_LGE_TOUCH_BRING_UP
 int rmi4_power_on(struct i2c_client *client, int on)
 {
 	int rc = 0;
@@ -248,8 +243,9 @@ int rmi4_power_on(struct i2c_client *client, int on)
 		return rc;
 
 }
+
 static int synaptics_rmi4_parse_dt(struct device *dev, struct synaptics_dsx_board_data *p_data)
- {
+{
 	 struct device_node *node = dev->of_node;
 	 int rc = 0;
 	 u32 temp_val;
@@ -282,23 +278,20 @@ static int synaptics_rmi4_parse_dt(struct device *dev, struct synaptics_dsx_boar
 	p_data->reset_delay_ms = (!rc ? temp_val : 10);
 
 	return 0;
- }
-#endif
+}
 
 static int synaptics_rmi4_i2c_probe(struct i2c_client *client,
 		const struct i2c_device_id *dev_id)
 {
 	int retval;
 	int ret = 0;
-#ifdef CUST_LGE_TOUCH_BRING_UP
 	struct synaptics_rmi4_data *rmi4_data;
 	struct synaptics_rmi4_device_info *rmi;
 	const struct synaptics_dsx_board_data *platform_data =
 			client->dev.platform_data;
-	struct synaptics_dsx_board_data *p_data = NULL;
+	struct synaptics_dsx_board_data *p_data;
 
 	printk("[Touch] %s START!!!!!!!!!!!!!!\n",__func__);
-#endif
 
 	if (!i2c_check_functionality(client->adapter,
 			I2C_FUNC_SMBUS_BYTE_DATA)) {
@@ -307,7 +300,6 @@ static int synaptics_rmi4_i2c_probe(struct i2c_client *client,
 				__func__);
 		return -EIO;
 	}
-#ifdef CUST_LGE_TOUCH_BRING_UP
 	rmi4_data = kzalloc(sizeof(*rmi4_data), GFP_KERNEL);
 	if (!rmi4_data) {
 		dev_err(&client->dev,
@@ -315,7 +307,6 @@ static int synaptics_rmi4_i2c_probe(struct i2c_client *client,
 				__func__);
 		return -ENOMEM;
 	}
-#endif
 
 	synaptics_dsx_i2c_device = kzalloc(
 			sizeof(struct platform_device),
@@ -328,7 +319,6 @@ static int synaptics_rmi4_i2c_probe(struct i2c_client *client,
 		goto err_alloc_dsx_i2c_device;
 	}
 
-#ifdef CUST_LGE_TOUCH_BRING_UP
 	if (client->dev.of_node) {
 		p_data = devm_kzalloc(&client->dev,
 			sizeof(struct synaptics_dsx_board_data), GFP_KERNEL);
@@ -356,9 +346,9 @@ static int synaptics_rmi4_i2c_probe(struct i2c_client *client,
 	}
 
 	printk("%s: Probing i2c RMI device, addr: 0x%02x\n", __func__, client->addr);
-	
+
 	rmi = &(rmi4_data->rmi4_mod_info);
-	
+
 	if (!platform_data) {
 		dev_err(&client->dev,
 				"%s: No platform data found\n",
@@ -376,36 +366,35 @@ static int synaptics_rmi4_i2c_probe(struct i2c_client *client,
 	printk("[Touch D] panel_x = %d\n", platform_data->panel_x);
 	printk("[Touch D] panel_y = %d\n", platform_data->panel_y);
 	printk("[Touch D] reset_delay_ms = %d\n", platform_data->reset_delay_ms);
-	
-	 if (platform_data->regulator_en) { 
-	 	rmi4_data->vreg_l22 = regulator_get(&client->dev, "vdd_ana"); 
-		if (IS_ERR(rmi4_data->vreg_l22)) { 
-	 		dev_err(&client->dev, 
-	 				"%s: Failed to get regulator vreg_l22\n", 
-	 				__func__); 
+
+	 if (platform_data->regulator_en) {
+	 	rmi4_data->vreg_l22 = regulator_get(&client->dev, "vdd_ana");
+		if (IS_ERR(rmi4_data->vreg_l22)) {
+	 		dev_err(&client->dev,
+	 			"%s: Failed to get regulator vreg_l22\n", __func__);
 			retval = PTR_ERR(rmi4_data->vreg_l22);
 			ret = -retval;
 			goto error;
-	 	} 
-		regulator_set_voltage(rmi4_data->vreg_l22, 3300000, 3300000); 
-	 	regulator_enable(rmi4_data->vreg_l22); 
+	 	}
 
-	 	rmi4_data->vreg_lvs3 = regulator_get(&client->dev, "vcc_i2c"); 
-	 	if (IS_ERR(rmi4_data->vreg_lvs3)) { 
-	 		dev_err(&client->dev, 
-					"%s: Failed to get regulator vreg_l22\n",
-					__func__); 
+		regulator_set_voltage(rmi4_data->vreg_l22, 3300000, 3300000);
+	 	regulator_enable(rmi4_data->vreg_l22);
+
+	 	rmi4_data->vreg_lvs3 = regulator_get(&client->dev, "vcc_i2c");
+	 	if (IS_ERR(rmi4_data->vreg_lvs3)) {
+	 		dev_err(&client->dev,
+				"%s: Failed to get regulator vreg_l22\n", __func__);
 			retval = PTR_ERR(rmi4_data->vreg_lvs3);
 			ret = -retval;
 			goto error;
-	 	} 
-	 	regulator_enable(rmi4_data->vreg_lvs3); 
-	 	}else
+	 	}
+	 	regulator_enable(rmi4_data->vreg_lvs3);
+ 	} else
 	 	rmi4_power_on(client, 1);
-		msleep(400);
+
+	msleep(400);
 
 	printk("[Touch D] %s : Done regulator set!!! \n",__func__);
-#endif
 
 	hw_if.board_data = client->dev.platform_data;
 	hw_if.bus_access = &bus_access;
@@ -426,21 +415,15 @@ static int synaptics_rmi4_i2c_probe(struct i2c_client *client,
 		goto error;
 	}
 
-#ifdef CUST_LGE_TOUCH_BRING_UP
 	printk("[Touch D] Complete %s !!! \n",__func__);
-#endif
 	return 0;
 
-#ifdef CUST_LGE_TOUCH_BRING_UP
 error:
 	devm_kfree(&client->dev, p_data);
-#endif
 error_alloc_dsx_board_data:
 	kfree(synaptics_dsx_i2c_device);
 err_alloc_dsx_i2c_device:
-#ifdef CUST_LGE_TOUCH_BRING_UP
 	kfree(rmi4_data);
-#endif
 	return ret;
 }
 
@@ -450,12 +433,10 @@ static int synaptics_rmi4_i2c_remove(struct i2c_client *client)
 
 	return 0;
 }
-#ifdef CUST_LGE_TOUCH_BRING_UP
 static struct of_device_id rmi_match_table[] = {
 	{ .compatible = "rmi,s3528",},
 	{ },
 };
-#endif
 
 static const struct i2c_device_id synaptics_rmi4_id_table[] = {
 	{I2C_DRIVER_NAME, 0},
@@ -467,9 +448,7 @@ static struct i2c_driver synaptics_rmi4_i2c_driver = {
 	.driver = {
 		.name = I2C_DRIVER_NAME,
 		.owner = THIS_MODULE,
-#ifdef CUST_LGE_TOUCH_BRING_UP
 		.of_match_table = rmi_match_table,
-#endif
 	},
 	.probe = synaptics_rmi4_i2c_probe,
 	.remove = __devexit_p(synaptics_rmi4_i2c_remove),
@@ -478,9 +457,7 @@ static struct i2c_driver synaptics_rmi4_i2c_driver = {
 
 int synaptics_rmi4_bus_init(void)
 {
-#ifdef CUST_LGE_TOUCH_BRING_UP
 	printk("[Touch D] synaptics_rmi4_init \n");
-#endif
 	return i2c_add_driver(&synaptics_rmi4_i2c_driver);
 }
 EXPORT_SYMBOL(synaptics_rmi4_bus_init);

@@ -19,25 +19,6 @@
 #include <linux/string.h>	//memset
 #include <linux/i2c.h>
 #include "../lge_touch_core.h"
-#if 0
-extern const int DefaultTimeout;
-
-int F54Test(int input);
-bool switchPage(int page);
-void RunQueries(void);
-void DeltaImageReport(void);
-void RawImageReport(void);
-void SensorSpeed(void);
-void ADCRange(void);
-void TxTxTest(void);
-int RxRxShortTest(void);
-void HighResistanceTest(void);
-void MaxMinTest(void);
-int ImageTest(void);
-void DeltaImageReport(void);
-
-void SCAN_PDT(void);
-#endif
 
 #define TRX_max 32
 #define CAP_FILE_PATH "/sns/touch/cap_diff_test.txt"

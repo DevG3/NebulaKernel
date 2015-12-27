@@ -1,4 +1,4 @@
-/*
+	/*
    +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    Copyright (c) 2012 Synaptics, Inc.
 
@@ -24,7 +24,6 @@
    +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    */
 #define SYNA_F34_SAMPLE_CODE
-#define SHOW_PROGRESS
 
 #include <linux/module.h>
 #include <linux/delay.h>
@@ -325,27 +324,6 @@ bool CheckTouchControllerType(struct synaptics_ts_data *ts)
 	else return false;
 }
 
-/*bool CheckFimrwareRevision(struct synaptics_ts_data *ts)
-{
-	unsigned char uData[16];
-	char revision[106] = {0};
-	int i;
-	readRMI(ts->client, (SynaF01QueryBase + 28 + SynaF01Query43Length), &uData[0], 16);
-
-	for (i = 0; i < 0; i++)
-	{
-		while (uData[i] != '\0')
-		{
-			revision[i] = (char)uData[0];
-		}
-	}
-
-	if (strcmp(revision, FW_REVISION) == 0)
-		return true;
-	return false;
-}*/
-
-
 /* SynaScanPDT scans the Page Description Table (PDT) and sets up the necessary variables
  * for the reflash process. This function is a "slim" version of the PDT scan function in
  * in PDT.c, since only F34 and F01 are needed for reflash.
@@ -508,28 +486,8 @@ void SynaEnableFlashing(struct synaptics_ts_data *ts)
 unsigned int SynaWaitForATTN(int timeout,struct synaptics_ts_data *ts)
 {
 	unsigned char uStatus;
-	//int duration = 50;
-	//int retry = timeout/duration;
-	//int times = 0;
-
 	int trial_us=0;
-#ifdef POLLING
-	do {
-		uStatus = 0x00;
-		readRMI(ts->client, (SynaF01DataBase + 1), &uStatus, 1);
-		if (uStatus != 0)
-			break;
-		Sleep(duration);
-		times++;
-	} while (times < retry);
 
-	if (times == retry)
-		return -1;
-#else
-	/*if (Line_WaitForAttention(timeout) == EErrorTimeout)
-	{
-		return -1;
-	}*/
 	while ((gpio_get_value(ts->pdata->int_pin) != 0) && (trial_us < (timeout * 1000))) {
 		udelay(1);
 		trial_us++;
@@ -540,7 +498,7 @@ unsigned int SynaWaitForATTN(int timeout,struct synaptics_ts_data *ts)
 	}
 
 	readRMI(ts->client, (SynaF01DataBase + 1), &uStatus, 1);
-#endif
+
 	return 0;
 }
 /* SynaFinalizeReflash finalizes the reflash process
@@ -596,17 +554,8 @@ void SynaFlashFirmwareWrite(struct synaptics_ts_data *ts)
 		cmd = m_uF34ReflashCmd_FirmwareWrite;
 		writeRMI(ts->client, SynaF34_FlashControl, (unsigned char*)&cmd, 1);
 
-		//SynaWaitForATTN(1000,ts);
 		CheckFlashStatus(ts, cmd);
-		//TOUCH_INFO_MSG("[%s] blockNum=[%d], SynaFirmwareBlockCount=[%d]\n", __FUNCTION__, blockNum, SynaFirmwareBlockCount);
-#ifdef SHOW_PROGRESS
-		if (blockNum % 100 == 0)
-			TOUCH_ERR_MSG("blk %d / %d\n", blockNum, SynaFirmwareBlockCount);
-#endif
 	}
-#ifdef SHOW_PROGRESS
-	TOUCH_ERR_MSG("blk %d / %d\n", SynaFirmwareBlockCount, SynaFirmwareBlockCount);
-#endif
 }
 
 /* SynaFlashFirmwareWrite writes the firmware section of the image block by block
@@ -635,14 +584,7 @@ void SynaFlashConfigWrite(struct synaptics_ts_data *ts)
 
 		SynaWaitForATTN(100,ts);
 		CheckFlashStatus(ts, cmd);
-#ifdef SHOW_PROGRESS
-		if (blockNum % 100 == 0)
-			TOUCH_ERR_MSG("blk %d / %d\n", blockNum, SynaConfigBlockCount);
-#endif
 	}
-#ifdef SHOW_PROGRESS
-	TOUCH_ERR_MSG("blk %d / %d\n", SynaConfigBlockCount, SynaConfigBlockCount);
-#endif
 }
 
 
@@ -669,11 +611,8 @@ void eraseAllBlock(struct synaptics_ts_data *ts)
 void SynaProgramFirmware(struct synaptics_ts_data *ts)
 {
 	TOUCH_ERR_MSG("\nProgram Firmware Section...\n");
-
 	eraseAllBlock(ts);
-
 	SynaFlashFirmwareWrite(ts);
-
 	SynaFlashConfigWrite(ts);
 }
 
@@ -682,13 +621,9 @@ void SynaProgramFirmware(struct synaptics_ts_data *ts)
 void SynaUpdateConfig(struct synaptics_ts_data *ts)
 {
 	TOUCH_ERR_MSG("\nUpdate Config Section...\n");
-
 	EraseConfigBlock(ts);
-
 	SynaFlashConfigWrite(ts);
 }
-
-
 
 /* EraseConfigBlock erases the config block
 */
@@ -716,11 +651,8 @@ void CompleteReflash(struct synaptics_ts_data *ts)
 	bool bFlashAll = true;
 
 	SynaInitialize(ts);
-
 	SynaReadFirmwareInfo(ts);
-
 	SynaEnableFlashing(ts);
-
 	SynaBootloaderLock(ts);
 
 	if (bFlashAll)
