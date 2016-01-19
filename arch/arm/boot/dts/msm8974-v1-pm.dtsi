@@ -122,15 +122,15 @@
 		qcom,vctl-timeout-us = <50>;
 		qcom,vctl-port = <0x0>;
 		qcom,phase-port = <0x1>;
+		qcom,cpu-vctl-mask = <0xf>;
 		qcom,pfm-port = <0x2>;
 		qcom,saw2-spm-cmd-ret = [1f 00 20 03 22 00 0f];
 		qcom,saw2-spm-cmd-gdhs = [00 20 32 42 03 44 22 50 02 32 50 0f];
 		qcom,saw2-spm-cmd-pc = [00 10 32 b0 11 42 07 01 b0 12 44
 				50 02 32 50 0f];
-		qcom,L2-spm-is-apcs-master;
 	};
 
-	lpm_levels: qcom,lpm-levels {
+	qcom,lpm-levels {
 		compatible = "qcom,lpm-levels";
 		qcom,default-l2-state = "l2_cache_retention";
 		#address-cells = <1>;
@@ -188,17 +188,14 @@
 		};
 	};
 
-	qcom,pm-boot {
-		compatible = "qcom,pm-boot";
-		qcom,mode = "tz";
-	};
-
 	qcom,mpm@fc4281d0 {
 		compatible = "qcom,mpm-v2";
 		reg = <0xfc4281d0 0x1000>, /* MSM_RPM_MPM_BASE 4K */
 		    <0xf9011008 0x4>;   /* MSM_APCS_GCC_BASE 4K */
 		reg-names = "vmpm", "ipc";
 		interrupts = <0 171 1>;
+		clocks = <&clock_rpm clk_cxo_lpm_clk>;
+		clock-names = "xo";
 
 		qcom,ipc-bit-offset = <1>;
 
@@ -302,16 +299,20 @@
 			<41  144>;
 	};
 
-	qcom,pm-8x60@fe805664 {
-		compatible = "qcom,pm-8x60";
+	qcom,pm@fe805664 {
+		compatible = "qcom,pm";
 		#address-cells = <1>;
 		#size-cells = <1>;
 		ranges;
 		reg = <0xfe805664 0x40>;
-		qcom,pc-mode = "tz_l2_int";
 		qcom,use-sync-timer;
-		qcom,cpus-as-clocks;
-		qcom,lpm-levels = <&lpm_levels>;
+		clock-names = "l2_clk", "cpu0_clk", "cpu1_clk", "cpu2_clk",
+				"cpu3_clk";
+		clocks = <&clock_krait clk_l2_clk>,
+			 <&clock_krait clk_krait0_clk>,
+			 <&clock_krait clk_krait1_clk>,
+			 <&clock_krait clk_krait2_clk>,
+			 <&clock_krait clk_krait3_clk>;
 	};
 
 	qcom,cpu-sleep-status@f9088008 {

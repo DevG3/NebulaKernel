@@ -16,7 +16,7 @@
  * msm8974.dtsi file.
  */
 
-/include/ "msm8974-v2.dtsi"
+#include "msm8974-v2.dtsi"
 
 /* GPU overrides */
 &msm_gpu {
@@ -91,4 +91,11 @@
 
 &gdsc_venus {
 	qcom,skip-logic-collapse;
+};
+
+&usb3 {
+	dwc3@f9200000 {
+		snps,ssphy-clear-auto-suspend-on-disconnect;
+		snps,usb3-u1u2-disable;
+	};
 };

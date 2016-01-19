@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -42,6 +42,44 @@
 		cam_vana-supply = <&pma8084_l17>;
 		cam_vio-supply = <&pma8084_lvs4>;
 	};
+
+
+	qcom,camera@0 {
+		qcom,vdd-cx-supply = <&pma8084_s2>;
+		cam_vdig-supply = <&pma8084_l3>;
+		cam_vana-supply = <&pma8084_l17>;
+		cam_vio-supply = <&pma8084_lvs4>;
+		cam_vaf-supply = <&pma8084_l23>;
+	};
+
+	qcom,camera@1 {
+		qcom,vdd-cx-supply = <&pma8084_s2>;
+		cam_vdig-supply = <&pma8084_l3>;
+		cam_vana-supply = <&pma8084_l17>;
+		cam_vio-supply = <&pma8084_lvs4>;
+		cam_vaf-supply = <&pma8084_l23>;
+	};
+
+	qcom,camera@2 {
+		qcom,vdd-cx-supply = <&pma8084_s2>;
+		cam_vdig-supply = <&pma8084_l3>;
+		cam_vana-supply = <&pma8084_l17>;
+		cam_vio-supply = <&pma8084_lvs4>;
+	};
+
+	qcom,camera@3 {
+		qcom,vdd-cx-supply = <&pma8084_s2>;
+		cam_vdig-supply = <&pma8084_l3>;
+		cam_vana-supply = <&pma8084_l17>;
+		cam_vio-supply = <&pma8084_lvs4>;
+	};
+
+	qcom,actuator@18 {
+		cam_vaf-supply = <&pma8084_l23>;
+	};
+	qcom,actuator@36 {
+		cam_vaf-supply = <&pma8084_l23>;
+	};
 };
 
 &soc {
@@ -68,16 +106,17 @@
 			compatible = "qcom,nfc-nci";
 			reg = <0x0e>;
 			qcom,irq-gpio = <&msmgpio 59 0x00>;
+			qcom,clk-req-gpio= <&msmgpio 0 0x00>;
 			qcom,dis-gpio = <&pma8084_mpps 7 0>;
+			qcom,clk-src-gpio= <&msmgpio 0 0x00>;
 			qcom,clk-src = "BBCLK2";
-			qcom,clk-en-gpio = <&msmgpio 0 0x00>;
 			interrupt-parent = <&msmgpio>;
 			interrupts = <59 0>;
 			qcom,clk-gpio = <&pma8084_gpios 10 0>;
 		};
 	};
 
-	qcom,ssusb@f9200000 {
+	ssusb@f9200000 {
 		vbus_dwc3-supply = <&pm8941_mvs1>;
 	};
 
@@ -106,8 +145,8 @@
 	vdd-supply = <&pma8084_l20>;
 	vdd-io-supply = <&pma8084_s4>;
 
-	qcom,pad-pull-on = <0x0 0x3 0x3 0x1>; /* no-pull, pull-up, pull-up, pull-down */
-	qcom,pad-pull-off = <0x0 0x3 0x3 0x1>; /* no-pull, pull-up, pull-up, pull-down */
+	pinctrl-0 = <&sdc1_clk_on_16 &sdc1_cmd_on &sdc1_data_on &sdc1_rclk_on>;
+	pinctrl-1 = <&sdc1_clk_off &sdc1_cmd_off &sdc1_data_off &sdc1_rclk_off>;
 };
 
 &sdhc_2 {
@@ -169,9 +208,13 @@
 	};
 
 	gpio@c700 { /* GPIO 8 */
-		/* Unused */
-		qcom,mode = <0>;		/* Digital input */
-		qcom,pull = <0>;		/* Pull up 30 uA */
+		/* Backlight PWM */
+		qcom,mode = <1>;		/* Digital output */
+		qcom,output-type = <0>;		/* CMOS logic */
+		qcom,invert = <0>;		/* Do not invert the output */
+		qcom,vin-sel = <2>;		/* PMA8084 S4 = 1.8 V */
+		qcom,src-sel = <2>;		/* Special Function 1=LPG 3 */
+		qcom,out-strength = <3>;	/* High drive strength */
 		qcom,master-en = <1>;
 	};
 
@@ -240,7 +283,7 @@
 		qcom,output-type = <0>;		/* CMOS */
 		qcom,vin-sel = <2>;		/* PMA8084 S4 = 1.8 V */
 		qcom,out-strength = <3>;	/* High */
-		qcom,src-sel = <3>;       	/* Function 2 - SLEEPCLK3  */
+		qcom,src-sel = <3>;		/* Function 2 - SLEEPCLK3  */
 		qcom,master-en = <1>;
 	};
 
