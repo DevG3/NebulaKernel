@@ -57,6 +57,8 @@ cat << CTAG
 			$BB echo ','
 			. $UKM/json.gen.tools
 			$BB echo ','
+			. $UKM/json.gen.fast
+			$BB echo ','
 			. $UKM/json.gen.logs
 			$BB echo ','
 			. $UKM/json.gen.backup-restore
@@ -66,6 +68,14 @@ cat << CTAG
 			. $UKM/json.gen.adv
     			$BB echo ','
 			. $UKM/json.gen.bpropEdit
+			$BB echo ','
+			. $UKM/json.gen.sysctl-kernel
+			$BB echo ','
+			. $UKM/json.gen.sysctl-fs
+			$BB echo ','
+			. $UKM/json.gen.sysctl-net
+			$BB echo ','
+			. $UKM/json.gen.sysctl-vm
 			$BB echo ','
 			. $UKM/json.gen.usb
 		else

@@ -22,7 +22,7 @@ title)
   echo "@nDevice: $DEVICE"
   ;;
 title_version)
-	echo "@nNebula Synapse Rev5.5.0"
+	echo "@nNebula Synapse Rev6.0"
 	echo "@nDevice: $DEVICE"
 	;;
 current_version)
