@@ -435,6 +435,10 @@ extern struct cpufreq_governor cpufreq_gov_brazilianwax;
 extern struct cpufreq_governor cpufreq_gov_conservative;
 #define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_conservative)
 
+#elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_CYAN)
+extern struct cpufreq_governor cpufreq_gov_cyan;
+#define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_cyan)
+
 #elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_DANCEDANCE)
 extern struct cpufreq_governor cpufreq_gov_dancedance;
 #define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_dancedance)
