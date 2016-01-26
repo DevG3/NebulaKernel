@@ -24,10 +24,16 @@ cat << CTAG
 		action:"`$BB echo $BB sh /sbin/nebula/busybox.sh`"
 		}},
 				{ SPane:{
+			title:"-=[ NEWS ]=-",
+			description:"Devloper is aware of the Error on some sections,
+			Do not make reports on them.,"
+				}},
+				{ SPane:{
 			title:"Special Features",
 			description:" CPU Voltage control,
 			MSM_LIMITER,
 			GPU control,
+			Fast Charger,
 			OC/UC,
 			Init.d,
 			Selinux Permissive,

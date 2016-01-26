@@ -59,6 +59,8 @@ cat << CTAG
 			$BB echo ','
 			. $UKM/json.gen.fast
 			$BB echo ','
+			. $UKM/json.gen.fast2
+			$BB echo ','
 			. $UKM/json.gen.logs
 			$BB echo ','
 			. $UKM/json.gen.backup-restore
