@@ -369,7 +369,7 @@ AFLAGS_KERNEL = $(KERNELFLAGS)
 CFLAGS_GCOV = -fprofile-arcs -ftest-coverage
 
 # Nebula's Optimizations
-NEBULA_FLAGS	= -pipe -marm -mcpu=cortex-a15 -mtune=cortex-a15 -mfloat-abi=softfp -mfpu=vfpv4
+NEBULA_FLAGS	= -pipe -marm -mcpu=cortex-a15 -mtune=cortex-a15 -mfloat-abi=softfp -mfpu=neon-vfpv4
 NEBULA_FLAGS	+= -Wno-unused -Wno-maybe-uninitialized
 NEBULA_FLAGS	+= --param l1-cache-size=32 --param l1-cache-line-size=32 --param l2-cache-size=2048
 
