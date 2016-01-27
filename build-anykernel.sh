@@ -107,7 +107,7 @@ function clean_all {
 		rm -rf $KERNEL
 		rm -rf $DTBIMAGE
 		echo "Deleting ramdisk/res/synapse Scripts From $REPACK_DIR"
-		rm -rf ramdisk/res/*
+		rm -rf ramdisk/res/synapse/*
 		rm -rf *.zip
 		cd $KERNEL_DIR
 		echo "Deleting arch/arm/boot/*.dtb's"
