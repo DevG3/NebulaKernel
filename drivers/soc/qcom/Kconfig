@@ -2,6 +2,13 @@
 
 if ARCH_MSM
 
+config MSM_LIMITER
+ 	bool "MSM Frequency Limiter Driver"
+ 	default y
+ 	help
+ 	  The MSM Frequency Limiter Driver controls max frequency limit for each CPU
+ 	  to desired value on suspend/resume
+
 config STATE_NOTIFIER
         bool "State Notifier"
 	default y

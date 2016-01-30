@@ -3053,15 +3053,7 @@ config HAS_MACH_MEMUTILS
 	bool "Motorola MSM memcpy enhancements"
 	help
 	Faster memcpy performance for Krait
-
-config MSM_LIMITER
-	bool "MSM Frequency Limiter Driver"
-	depends on (LCD_NOTIFY || POWERSUSPEND || HAS_EARLYSUSPEND)
-	default n
-	help
-	  The MSM Frequency Limiter Driver controls max frequency limit for each CPU
-	  to desired value on suspend/resume
-
+	
 config PVS_LEVEL_INTERFACE
 	bool "Expose PVS level information in SYSFS"
 	help
