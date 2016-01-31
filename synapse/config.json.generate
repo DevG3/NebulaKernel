@@ -21,8 +21,6 @@ cat << CTAG
 			$BB echo ','
 			. $UKM/json.gen.live
 			$BB echo ','
-			. $UKM/json.gen.cpuplus
-			$BB echo ','
 			. $UKM/json.gen.cpu
 			$BB echo ','
 			. $UKM/json.gen.hotplug
