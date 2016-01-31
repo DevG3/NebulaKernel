@@ -5,26 +5,6 @@ cat << CTAG
     name:KERNEL-SYSCTL,
     elements:[
 	{ SPane:{
-		title:"msgmax",
-		description:" Defines a system-wide limit specifying the maximum number of bytes in a single message written on a message queque. Default is 8192.",
-	}},
-	{ SSeekBar:{
-		max:524288,
-		min:8192,
-		step:8192,
-		default:`cat /proc/sys/kernel/msgmax`,
-		action:"generic /proc/sys/kernel/msgmax",
-	}},
-	{ SPane:{
-		title:"msgmni",
-		description:" Defines a system-wide limit specifying the minimum number of bytes in a single message written on a message queque. Default is 1007.",
-	}},
-	{ SSeekBar:{
-		default:`cat /proc/sys/kernel/msgmni`,
-		action:"generic /proc/sys/kernel/msgmni",
-		values:[512, 1007, 1024, 2048, 3008, 3072, 4096, 5120, 6144, 7168, 8192,]
-	}},
-	{ SPane:{
 		title:"panic",
 		description:" Set to zero to have the kernel loop on a panic or auto-reboot after this number of seconds. Default is 5.",
 	}},
