@@ -3,6 +3,14 @@ BB=/sbin/bb/busybox
 DEVICE=`sh $UKM/device/.device.sh`;
 
 case $1 in
+	CHECKCRON)
+		CRON_SERVICE=$(pidof crond | wc -l);
+		if [ "$CRON_SERVICE" -eq "1" ]; then
+			echo "Cron Service is Running";
+		else
+			echo "Cron Service is Offline";
+		fi;
+	;;
 	SCALINGFREQ)
 		FREQMAX_0="$(expr `cat /sys/kernel/msm_limiter/live_max_freq_0` / 1000)MHz"
 		FREQMIN_0="$(expr `cat /sys/kernel/msm_limiter/live_min_freq_0` / 1000)MHz"
@@ -216,6 +224,7 @@ case $1 in
 			disksize=`echo Zram Disksize: "$((\`cat /sys/block/zram0/disksize\`/1024/1024))MB"`
 			SwapCached=`echo SwapCached: "$((\`echo SwapCached_tmp\`/1024))MB"`
 
+			reclaim_avg_efficiency=`echo "Process Reclaim Avg Efficiency: \`cat /sys/module/process_reclaim/parameters/reclaim_avg_efficiency\`%"`
 			echo $compr_data_size@n$mem_used_total@n$orig_data_size@n$zero_pages@n$disksize@n@n$notify_free@n$num_reads@n$num_writes@n@n$SwapCached@n$saved@n$Compression@n$Compression_with_overhead@n$Used
 
 		else

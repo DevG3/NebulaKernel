@@ -4,7 +4,7 @@
 SYNAPSE_SD_DIR=/sdcard/Synapse;
 SYNAPSE_CRON_DIR=$SYNAPSE_SD_DIR/crontab;
 
-BB=/sbin/busybox;
+BB=/sbin/bb/busybox;
 
 if [ "$($BB mount | grep rootfs | cut -c 26-27 | grep -c ro)" -eq "1" ]; then
 	$BB mount -o remount,rw /;
