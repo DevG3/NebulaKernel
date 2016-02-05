@@ -106,8 +106,10 @@ function clean_all {
 		cd $REPACK_DIR
 		rm -rf $KERNEL
 		rm -rf $DTBIMAGE
-		echo "Deleting ramdisk Files From $REPACK_DIR"
-		rm -rf ramdisk/*
+		echo "Deleting ramdisk/res/ Scripts From $REPACK_DIR"
+		rm -rf ramdisk/res/*
+		echo "Deleting ramdisk/sbin Scripts From $REPACK_DIR"
+		rm -rf ramdisk/sbin/*
 		rm -rf *.zip
 		cd $KERNEL_DIR
 		echo "Deleting arch/arm/boot/*.dtb's"

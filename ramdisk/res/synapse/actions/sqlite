@@ -1,11 +1,11 @@
 UKM=/res/synapse;
 BB=/sbin/bb/busybox
-if [ -f "/system/xbin/sqlite3" ]; then SQL3=/system/xbin/sqlite3; else SQL3=$UKM/sqlite3; fi;
+if [ -f "/system/xbin/sqlite3" ]; then SQL3=/system/xbin/sqlite3; else SQL3=$UKM/files/sqlite3; fi;
 
 SYNAPSE_SD_DIR=/sdcard/Synapse;
 SYNAPSE_CONFIG_DIR=$SYNAPSE_SD_DIR/saved_configs;
 SYNAPSE_DATA=/data/data/com.af.synapse/databases;
-DISABLED_SETTINGS="'buildprop net.hostname', 'buildprop service.adb.tcp.port', 'devtools selinux', 'generic /data/UKM/files/bck_prof', 'sqlite PreferredNetworkMode'";
+DISABLED_SETTINGS="'buildprop net.hostname', 'buildprop service.adb.tcp.port', 'devtools selinux', 'generic $UKM/files/bck_prof', 'sqlite PreferredNetworkMode'";
 DISABLED_ACTIONS="AND key NOT LIKE 'cpuvolt%' AND key NOT LIKE 'gamma%' AND key NOT LIKE 'restorebackup%' AND key NOT LIKE 'soundfaux%' AND key NOT LIKE 'speakerfaux%' AND key NOT LIKE 'voltage%'";
 
 case "$1" in

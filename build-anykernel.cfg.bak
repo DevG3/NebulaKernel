@@ -1,5 +1,5 @@
 ###############################################################################################
-# build-anykernel.sh Configure File. (C) 2016                                                 #
+# build-anykernel.sh Configure File. (C) 2015                                                 #
 #                                                                                             #
 # This Is The Configure File That User Edits To Match His/Her Needs                           #
 #                                                                                             #
@@ -25,7 +25,7 @@ STAND_ALONE_UCI_DIR="${HOME}/Builds/KERNEL-SOURCE/Synapse-AnyKernel"
 UCI_REV=6.1
 
 # Kernel Details
-REV=12.2_LP
+REV=12.2_MM
 DEVICES="d850;d851;d852;d855;d855_lowmem;d856;f400;ls990;vs985"
 #BDATE=$(date +"%Y%m%d")
 KVER=$(date +"%Y%m%d_%H%M%S")
