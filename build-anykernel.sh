@@ -257,8 +257,8 @@ function bump_defconfigs() {
 		1)
 		echo "Cancel pressed.";;
 		esac
-		sed -i '6s/.*/kernel.string=Nebula Kernel Rev'$REV' By Eliminater74/' $REPACK_DIR/anykernel.sh
- 		sed -i 's/REV='$OLD_REV'/REV='$REV'/g' $KERNEL_DIR/build-anykernel.cfg
+		replace_string $REPACK_DIR/anykernel.sh "kernel.string" "Rev$OLD_REV" "Rev$REV"
+		replace_string $KERNEL_DIR/build-anykernel.cfg "REV" "$OLD_REV" "$REV"
 		OIFS=$IFS
 		IFS=';'
 		arr2=$DEVICES
@@ -297,8 +297,8 @@ function bump_uci() {
 		1)
 		echo "Cancel pressed.";;
 		esac
-		sed -i '6s/.*/kernel.string=UKM Synapse Suport Rev'$UCI_REV' By Eliminater74/' $STAND_ALONE_UCI_DIR/anykernel.sh
- 		sed -i 's/UCI_REV='$OLD_UCI_REV'/UCI_REV='$UCI_REV'/g' $KERNEL_DIR/build-anykernel.cfg
+		replace_string $STAND_ALONE_UCI_DIR/anykernel.sh "kernel.string" "$OLD_UCI_REV" "$UCI_REV"
+		replace_string $KERNEL_DIR/build-anykernel.cfg "UCI_REV" "$OLD_UCI_REV" "$UCI_REV"
 IFS=$OIFS
 TITLE="Version Bumped"
 BACKTITLE="Version Bumped"
@@ -313,19 +313,31 @@ message
 # backup_file <file>
 backup_file() { cp $1 $1~; }
 
+# remove_file <file>
+remove_file() { rm -rf $1~; }
+
 # replace_string <file> <if search string> <original string> <replacement string>
-function STRING_REPLACE() {
-  if [ -z "$(grep "$2" $1)" ]; then
+replace_string() {
+  if [ -z "$(grep -q "$2" $1)" ]; then
+  echo Found: "$1; $2; $3; $4"
       sed -i "s;${3};${4};" $1;
+      echo "Match Found"
   fi;
 }
 
-function STRING_SHOW() { grep "^$2" "$1" | cut -d= -f2; }
-	replace_string() { grep "^$2" "$1" | cut -d= -f2; }
-#	getprop() { test -e /sbin/getprop && /sbin/getprop $1 || file_getprop /default.prop $1; }
-#	abort() { echo "$*"; exit 1; }
+# replace_section <file> <begin search string> <end search string> <replacement string>
+replace_section() {
+  line=`grep -n "$2" $1 | cut -d: -f1`;
+  sed -i "/${2}/,/${3}/d" $1;
+  sed -i "${line}s;^;${4}\n;" $1;
+}
 
-# insert_line <file> <if search string> <before/after> <line match string> <inserted line>
+# remove_section <file> <begin search string> <end search string>
+remove_section() {
+  sed -i "/${2}/,/${3}/d" $1;
+}
+
+# insert_line <file> <if search string> <before|after> <line match string> <inserted line>
 insert_line() {
   if [ -z "$(grep "$2" $1)" ]; then
     case $3 in
@@ -333,7 +345,7 @@ insert_line() {
       after) offset=1;;
     esac;
     line=$((`grep -n "$4" $1 | cut -d: -f1` + offset));
-    sed -i "${line}s;^;${5};" $1;
+    sed -i "${line}s;^;${5}\n;" $1;
   fi;
 }
 
@@ -360,6 +372,19 @@ prepend_file() {
   fi;
 }
 
+# insert_file <file> <if search string> <before|after> <line match string> <patch file>
+insert_file() {
+  if [ -z "$(grep "$2" $1)" ]; then
+    case $3 in
+      before) offset=0;;
+      after) offset=1;;
+    esac;
+    line=$((`grep -n "$4" $1 | cut -d: -f1` + offset));
+    sed -i "${line}s;^;\n;" $1;
+    sed -i "$((line - 1))r $patch/$5" $1;
+  fi;
+}
+
 # append_file <file> <if search string> <patch file>
 append_file() {
   if [ -z "$(grep "$2" $1)" ]; then
@@ -371,9 +396,26 @@ append_file() {
 
 # replace_file <file> <permissions> <patch file>
 replace_file() {
-  cp -fp $patch/$3 $1;
+  cp -pf $patch/$3 $1;
   chmod $2 $1;
 }
+
+# patch_fstab <fstab file> <mount match name> <fs match type> <block|mount|fstype|options|flags> <original string> <replacement string>
+patch_fstab() {
+  entry=$(grep "$2" $1 | grep "$3");
+  if [ -z "$(echo "$entry" | grep "$6")" ]; then
+    case $4 in
+      block) part=$(echo "$entry" | awk '{ print $1 }');;
+      mount) part=$(echo "$entry" | awk '{ print $2 }');;
+      fstype) part=$(echo "$entry" | awk '{ print $3 }');;
+      options) part=$(echo "$entry" | awk '{ print $4 }');;
+      flags) part=$(echo "$entry" | awk '{ print $5 }');;
+    esac;
+    newentry=$(echo "$entry" | sed "s;${part};${6};");
+    sed -i "s;${entry};${newentry};" $1;
+  fi;
+}
+
 
 ## end methods
 #######################################################
