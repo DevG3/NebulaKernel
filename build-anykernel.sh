@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ###########################################################################################
-# NebulaKernel Build Script (C) 2016                                                      #
+# NebulaKernel Build Script (C) 2016   UpDated: 02/05/2016                                #
 #  Modified By Eliminater74   Original By RenderBroken                                    #
 #                                                                                         #
 # Build Script W/AnyKernel V2 Support Plus        07/22/2015                              #
