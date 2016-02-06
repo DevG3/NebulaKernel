@@ -135,8 +135,8 @@ function change_variant {
 		fi
 		echo "TAG: $TAG"
 		cd $REPACK_DIR
-		sed -i '11s/.*/device.name1='$TAG'/' anykernel.sh
-		sed -i '12s/.*/device.name2=LG-'$TAG'/' anykernel.sh
+		sed -i '12s/.*/device.name1='$TAG'/' anykernel.sh
+		sed -i '13s/.*/device.name2=LG-'$TAG'/' anykernel.sh
 		cd $KERNEL_DIR
 		#cd $REPACK_DIR
         #sed -i 's/d850/$VARIANT/g; s/d851/$VARIANT/g; s/d852/$VARIANT/g; s/d855/$VARIANT/g; s/f400/$VARIANT/g; s/ls990/$VARIANT/g; s/vs985/$VARIANT/g/g' anykernel.sh
