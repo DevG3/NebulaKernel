@@ -73,6 +73,7 @@ TestBuild=0
 export ERROR_LOG=ERRORS
 export LOCALVERSION=$LOCALVERSION
 export CROSS_COMPILE=$CROSS_COMPILE
+export CHAIN=$CHAIN
 export ARCH=$ARCH
 export SUBARCH=$SUBARCH
 export KBUILD_BUILD_USER=$KBUILD_BUILD_USER
@@ -670,9 +671,10 @@ dialog --clear  --help-button --backtitle "Linux Shell Script Tutorial" \
 --menu "You can use the UP/DOWN arrow keys, the first \n\
 letter of the choice as a hot key, or the \n\
 number keys 1-5 to choose an option.\n\
-Choose the TASK" 20 50 8 \
+Choose the TASK" 23 60 15 \
 	"Build" "Build Kernels" \
 	"Clean"	"Clean Builds" \
+	"TC" "Tool Chain TC: $CHAIN" \
 	"Log" "Logging Options [Log: $ERROR_LOG]" \
 	"Ccache" "Clear Ccache" \
 	"Bump" "Bump Version" \
@@ -690,6 +692,7 @@ Choose the TASK" 20 50 8 \
 case $menuitem in
 		Build) build_kernels ;;
 		Clean) clean_all ;;
+		TC) echo "Not Implanted yet" ;;
 		Log) menu_log ;;
 		Ccache) echo "Clearing Ccache.."; rm -rf ${HOME}/.ccache ;;
 		Bump) bump_defconfigs ;;
