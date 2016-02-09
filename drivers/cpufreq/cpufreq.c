@@ -39,6 +39,7 @@
 
 #ifdef CONFIG_MSM_LIMITER
 #include <linux/msm_thermal.h>
+#include <soc/qcom/limiter.h>
 #endif
 
 /**
@@ -479,10 +480,22 @@ static ssize_t show_scaling_cur_freq(
 static int __cpufreq_set_policy(struct cpufreq_policy *data,
 				struct cpufreq_policy *policy);
 
+static bool cpufreq_update_allowed(int mpd)
+{
+#ifdef CONFIG_MSM_LIMITER
+	if (mpd == 0 && limit.mpd_enabled == 0)
+#else
+	if (mpd == 0)
+#endif
+		return false;
+
+	return true;
+}
+
 /**
  * cpufreq_per_cpu_attr_write() / store_##file_name() - sysfs write access
  */
-#define store_one(file_name, object)			\
+#define store_one(file_name, object)					\
 static ssize_t store_##file_name					\
 (struct cpufreq_policy *policy, const char *buf, size_t count)		\
 {									\
@@ -490,7 +503,7 @@ static ssize_t store_##file_name					\
 	struct cpufreq_policy new_policy;				\
 	int mpd = strcmp(current->comm, "mpdecision");			\
 									\
-	if (mpd == 0)							\
+	if (!cpufreq_update_allowed(mpd))				\
 		return ret;						\
 									\
 	ret = cpufreq_get_policy(&new_policy, policy->cpu);		\
