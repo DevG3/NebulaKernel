@@ -560,17 +560,12 @@ int __init arm_add_memory(phys_addr_t start, phys_addr_t size)
 		return -EINVAL;
 	}
 
-u64 aligned_start;
 	/*
 	 * Ensure that start/size are aligned to a page boundary.
-	 * Size is rounded down, start is rounded up.
+	 * Size is appropriately rounded down, start is rounded up.
 	 */
 	size -= start & ~PAGE_MASK;
 	bank->start = PAGE_ALIGN(start);
-		if (aligned_start > start + size)
- 		size = 0;
- 	else
- 		size -= aligned_start - start;
 
 #ifndef CONFIG_LPAE
 	if (bank->start + size < bank->start) {
