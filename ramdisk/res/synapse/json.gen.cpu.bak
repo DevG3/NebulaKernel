@@ -11,8 +11,6 @@ cat << CTAG
 	{ STitleBar:{
 		title:"MSM Limiter"
 	}},
-	`if [ ! -f "/sys/kernel/msm_limiter/suspend_max_freq_0" ] && [ ! -f "/sys/devices/system/cpu/cpufreq/all_cpus/scaling_max_freq_all_cpus" ]; then
-
 			{ SCheckBox:{
 				label:"Enable",
 				description:"This enables overriding of current CPU Max/Min Frequency. It also set CPU Max Frequency whenever device resumes and suspends and set CPU Min Frequency whenever device suspends. Below controls will work ONLY if MSM Limiter driver is enabled. Ideal max frequency should always be higher than min frequency and input boost frequency. Ideal min frequency should be lesser than max frequency, max screen off frequency and input boost frequency.",
