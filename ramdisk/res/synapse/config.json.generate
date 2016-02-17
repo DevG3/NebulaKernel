@@ -57,6 +57,8 @@ cat << CTAG
 			$BB echo ','
 			. $UKM/json.gen.fast
 			$BB echo ','
+			. $UKM/json.gen.uksm
+			$BB echo ','
 			. $UKM/json.gen.crontab
 			$BB echo ','
 			. $UKM/json.gen.logs
