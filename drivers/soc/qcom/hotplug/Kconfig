@@ -75,9 +75,16 @@ config FAST_HOTPLUG
 	  
 config THUNDERPLUG_CONTROL
       bool "Enable plugging down/up of cores using powersuspend"
+      default n
       help
        This driver uses powersuspend to take down the cpu cores
        on a octa core device. Tuned to work on a quad core device.
+       
+config MSM_SLEEPER
+	bool "CPU hotplug driver"
+	default n
+	help
+	  CPU hotplug driver
        
 endif # ARCH_MSM      
 
