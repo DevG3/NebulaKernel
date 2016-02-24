@@ -39,7 +39,7 @@
 #define DEFAULT_SUSPEND_DEFER_TIME	10
 #define DEFAULT_DOWN_LOCK_DUR		500
 
-#define MSM_MPDEC_IDLE_FREQ		422400
+#define MSM_MPDEC_IDLE_FREQ		960000
 
 enum {
 	MSM_MPDEC_DISABLED = 0,
@@ -220,11 +220,7 @@ static void __ref bricked_hotplug_work(struct work_struct *work) {
 	case MSM_MPDEC_DOWN:
 		cpu = get_slowest_cpu();
 		if (cpu > 0) {
-#ifdef CONFIG_CPU_BOOST
-			if (cpu_online(cpu) && !check_cpuboost(cpu)
-#else
 			if (cpu_online(cpu)
-#endif
 					&& !check_down_lock(cpu))
 				cpu_down(cpu);
 		}
@@ -298,11 +294,7 @@ static void __ref bricked_hotplug_resume(void)
 		}
 	}
 
-#ifdef CONFIG_CPU_BOOST
-	if (wakeup_cb_boost || required_wakeup) {
-#else
-	if (required_wakeup) {
-#endif
+	if (wakeup_boost || required_wakeup) {
 		/* Fire up all CPUs */
 		for_each_cpu_not(cpu, cpu_online_mask) {
 			if (cpu == 0)
